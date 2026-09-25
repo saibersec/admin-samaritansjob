@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - SAMARITAN'S JOB</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #0b0f1e; color: #f1f5f9; padding: 20px; display: flex; justify-content: center; }
+    .admin-card { background: #151c33; border: 1px solid #1e293b; border-radius: 12px; padding: 24px; width: 100%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+    h2 { font-size: 20px; margin-bottom: 20px; color: #38bdf8; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #1e293b; padding-bottom: 12px; }
+    
+    .section { margin-bottom: 24px; }
+    label { font-size: 14px; color: #94a3b8; display: block; margin-bottom: 8px; font-weight: 600; }
+    
+    /* Toggle Status Button */
+    .status-box { display: flex; gap: 10px; margin-top: 8px; }
+    .btn-status { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.2s; opacity: 0.4; }
+    .btn-status.active-open { background: #22c55e; color: white; opacity: 1; box-shadow: 0 0 12px rgba(34, 197, 94, 0.4); }
+    .btn-status.active-close { background: #ef4444; color: white; opacity: 1; box-shadow: 0 0 12px rgba(239, 68, 68, 0.4); }
+
+    /* Rule List UI */
+    .rule-item { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
+    .input-num { width: 65px; background: #0b0f1e; border: 1px solid #334155; color: #38bdf8; padding: 10px; border-radius: 6px; text-align: center; font-weight: bold; }
+    .input-text { flex: 1; background: #0b0f1e; border: 1px solid #334155; color: white; padding: 10px; border-radius: 6px; }
+    .btn-del { background: #ef4444; color: white; border: none; width: 36px; height: 36px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    
+    .btn-add { background: #334155; color: #38bdf8; border: 1px dashed #38bdf8; width: 100%; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 5px; }
+    .btn-save { background: #38bdf8; color: #0b0f1e; border: none; width: 100%; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
+    .btn-save:hover { background: #0284c7; color: white; }
+  </style>
+</head>
+<body>
+
+<div class="admin-card">
+  <h2>⚙️ Panel Admin SAMARITAN'S JOB</h2>
+
+  <!-- Status Job -->
+  <div class="section">
+    <label>STATUS JOB SAAT INI:</label>
+    <div class="status-box">
+      <button id="btnOpen" class="btn-status" onclick="selectStatus('OPEN')">🟢 OPEN</button>
+      <button id="btnClose" class="btn-status" onclick="selectStatus('CLOSED')">🔴 CLOSED</button>
+    </div>
+  </div>
+
+  <hr style="border-color: #1e293b; margin-bottom: 20px;">
+
+  <!-- Edit Rules List -->
+  <div class="section">
+    <label>DAFTAR RULES & KETENTUAN:</label>
+    <div id="rulesContainer">
+      <!-- Item Rule akan terisi otomatis di sini secara visual -->
+    </div>
+    <button class="btn-add" onclick="addRuleRow()">+ Tambah Rule Baru</button>
+  </div>
+
+  <button class="btn-save" onclick="saveAllData()">💾 SIMPAN PERUBAHAN</button>
+</div>
+
+<script>
+  // GANTI PAKAI MASTER KEY & BIN ID MILIKMU
+  const BIN_ID = "6ab6ec1cac6210605af5c413";
+  const API_KEY = "$2a$10$O7in8/v51RhnZVFCIuKo9ezWGLgrZ6XAcx6nTrGVa66ADZUp570wm";
+
+  let currentStatus = "OPEN";
+
+  // 1. Ambil Data Awal dari JSONBin
+  async function loadAdminData() {
+    try {
+      let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+        headers: { "X-Master-Key": API_KEY }
+      });
+      let data = await res.json();
+      let record = data.record;
+
+      // Set Status Button
+      selectStatus(record.status);
+
+      // Render Rules ke Form UI
+      const container = document.getElementById("rulesContainer");
+      container.innerHTML = "";
+      if (record.rules && record.rules.length > 0) {
+        record.rules.forEach(rule => {
+          addRuleRow(rule.num, rule.text);
+        });
+      }
+    } catch (err) {
+      alert("Gagal memuat data dari JSONBin!");
+    }
+  }
+
+  // 2. Pilih Status OPEN / CLOSED via Klik Tombol
+  function selectStatus(status) {
+    currentStatus = status;
+    const btnOpen = document.getElementById("btnOpen");
+    const btnClose = document.getElementById("btnClose");
+
+    if (status === "OPEN") {
+      btnOpen.className = "btn-status active-open";
+      btnClose.className = "btn-status";
+    } else {
+      btnOpen.className = "btn-status";
+      btnClose.className = "btn-status active-close";
+    }
+  }
+
+  // 3. Tambah Baris Form Rule Baru
+  function addRuleRow(num = "", text = "") {
+    const container = document.getElementById("rulesContainer");
+    const div = document.createElement("div");
+    div.className = "rule-item";
+    div.innerHTML = `
+      <input type="text" class="input-num" value="${num}" placeholder="01 / ex">
+      <input type="text" class="input-text" value="${text}" placeholder="Isi aturan di sini...">
+      <button class="btn-del" onclick="this.parentElement.remove()">✕</button>
+    `;
+    container.appendChild(div);
+  }
+
+  // 4. Simpan Seluruh Perubahan ke JSONBin saat Tombol Simpan Diklik
+  async function saveAllData() {
+    const ruleItems = document.querySelectorAll(".rule-item");
+    let updatedRules = [];
+
+    ruleItems.forEach(item => {
+      let num = item.querySelector(".input-num").value;
+      let text = item.querySelector(".input-text").value;
+      if (text.trim() !== "") {
+        updatedRules.push({ num: num || "•", text: text });
+      }
+    });
+
+    try {
+      let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Master-Key": API_KEY
+        },
+        body: JSON.stringify({
+          status: currentStatus,
+          rules: updatedRules
+        })
+      });
+
+      if (res.ok) {
+        alert("✅ Berhasil disimpan! Halaman user otomatis berubah.");
+      } else {
+        alert("❌ Gagal menyimpan.");
+      }
+    } catch (err) {
+      alert("Koneksi gagal.");
+    }
+  }
+
+  // Jalankan saat admin.html dibuka
+  loadAdminData();
+</script>
+
+</body>
+</html>
