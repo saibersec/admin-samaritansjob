@@ -7,17 +7,21 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background-color: #0b0f1e; color: #f1f5f9; padding: 20px; display: flex; justify-content: center; }
-    .admin-card { background: #151c33; border: 1px solid #1e293b; border-radius: 12px; padding: 24px; width: 100%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+    .admin-card { background: #151c33; border: 1px solid #1e293b; border-radius: 12px; padding: 24px; width: 100%; max-width: 550px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
     h2 { font-size: 20px; margin-bottom: 20px; color: #38bdf8; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #1e293b; padding-bottom: 12px; }
     
-    .section { margin-bottom: 24px; }
-    label { font-size: 14px; color: #94a3b8; display: block; margin-bottom: 8px; font-weight: 600; }
+    .section { margin-bottom: 20px; }
+    label { font-size: 13px; color: #94a3b8; display: block; margin-bottom: 8px; font-weight: 700; letter-spacing: 0.5px; }
     
-    /* Toggle Status Button */
-    .status-box { display: flex; gap: 10px; margin-top: 8px; }
-    .btn-status { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.2s; opacity: 0.4; }
-    .btn-status.active-open { background: #22c55e; color: white; opacity: 1; box-shadow: 0 0 12px rgba(34, 197, 94, 0.4); }
-    .btn-status.active-close { background: #ef4444; color: white; opacity: 1; box-shadow: 0 0 12px rgba(239, 68, 68, 0.4); }
+    /* Job Status Cards */
+    .job-status-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+    .job-row { display: flex; align-items: center; justify-content: space-between; background: #0b0f1e; padding: 12px 16px; border-radius: 8px; border: 1px solid #1e293b; }
+    .job-title { font-weight: bold; font-size: 14px; color: #e2e8f0; }
+    
+    .status-box { display: flex; gap: 8px; }
+    .btn-status { padding: 8px 14px; border: none; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; transition: all 0.2s; opacity: 0.3; }
+    .btn-status.active-open { background: #22c55e; color: white; opacity: 1; box-shadow: 0 0 10px rgba(34, 197, 94, 0.4); }
+    .btn-status.active-close { background: #ef4444; color: white; opacity: 1; box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); }
 
     /* Rule List UI */
     .rule-item { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
@@ -35,12 +39,38 @@
 <div class="admin-card">
   <h2>⚙️ Panel Admin SAMARITAN'S JOB</h2>
 
-  <!-- Status Job -->
+  <!-- Status Job Per Kategori -->
   <div class="section">
-    <label>STATUS JOB SAAT INI:</label>
-    <div class="status-box">
-      <button id="btnOpen" class="btn-status" onclick="selectStatus('OPEN')">🟢 OPEN</button>
-      <button id="btnClose" class="btn-status" onclick="selectStatus('CLOSED')">🔴 CLOSED</button>
+    <label>STATUS INDIVIDUAL JOB:</label>
+    <div class="job-status-group">
+      
+      <!-- Job Gmail -->
+      <div class="job-row">
+        <span class="job-title">✉️ JOB GMAIL</span>
+        <div class="status-box">
+          <button id="btn-gmail-OPEN" class="btn-status" onclick="setJobStatus('gmail', 'OPEN')">🟢 OPEN</button>
+          <button id="btn-gmail-CLOSED" class="btn-status" onclick="setJobStatus('gmail', 'CLOSED')">🔴 CLOSED</button>
+        </div>
+      </div>
+
+      <!-- Job File -->
+      <div class="job-row">
+        <span class="job-title">📁 JOB FILE</span>
+        <div class="status-box">
+          <button id="btn-file-OPEN" class="btn-status" onclick="setJobStatus('file', 'OPEN')">🟢 OPEN</button>
+          <button id="btn-file-CLOSED" class="btn-status" onclick="setJobStatus('file', 'CLOSED')">🔴 CLOSED</button>
+        </div>
+      </div>
+
+      <!-- Job Chat -->
+      <div class="job-row">
+        <span class="job-title">💬 JOB CHAT</span>
+        <div class="status-box">
+          <button id="btn-chat-OPEN" class="btn-status" onclick="setJobStatus('chat', 'OPEN')">🟢 OPEN</button>
+          <button id="btn-chat-CLOSED" class="btn-status" onclick="setJobStatus('chat', 'CLOSED')">🔴 CLOSED</button>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -50,7 +80,7 @@
   <div class="section">
     <label>DAFTAR RULES & KETENTUAN:</label>
     <div id="rulesContainer">
-      <!-- Item Rule akan terisi otomatis di sini secara visual -->
+      <!-- Item Rule akan terisi otomatis secara visual -->
     </div>
     <button class="btn-add" onclick="addRuleRow()">+ Tambah Rule Baru</button>
   </div>
@@ -59,11 +89,15 @@
 </div>
 
 <script>
-  // GANTI PAKAI MASTER KEY & BIN ID MILIKMU
   const BIN_ID = "6ab6ec1cac6210605af5c413";
   const API_KEY = "$2a$10$O7in8/v51RhnZVFCIuKo9ezWGLgrZ6XAcx6nTrGVa66ADZUp570wm";
 
-  let currentStatus = "OPEN";
+  // Penampung Objek Status Per Job
+  let currentStatus = {
+    gmail: "OPEN",
+    file: "OPEN",
+    chat: "OPEN"
+  };
 
   // 1. Ambil Data Awal dari JSONBin
   async function loadAdminData() {
@@ -74,8 +108,17 @@
       let data = await res.json();
       let record = data.record;
 
-      // Set Status Button
-      selectStatus(record.status);
+      // Update Tampilan Status Per Job
+      if (record.status) {
+        if (typeof record.status === 'object') {
+          currentStatus = { ...currentStatus, ...record.status };
+        } else {
+          // Fallback jika data lama masih berupa string tunggal
+          currentStatus = { gmail: record.status, file: record.status, chat: record.status };
+        }
+      }
+
+      renderStatusButtons();
 
       // Render Rules ke Form UI
       const container = document.getElementById("rulesContainer");
@@ -90,19 +133,27 @@
     }
   }
 
-  // 2. Pilih Status OPEN / CLOSED via Klik Tombol
-  function selectStatus(status) {
-    currentStatus = status;
-    const btnOpen = document.getElementById("btnOpen");
-    const btnClose = document.getElementById("btnClose");
+  // 2. Mengubah Nilai Status Salah Satu Job
+  function setJobStatus(job, status) {
+    currentStatus[job] = status;
+    renderStatusButtons();
+  }
 
-    if (status === "OPEN") {
-      btnOpen.className = "btn-status active-open";
-      btnClose.className = "btn-status";
-    } else {
-      btnOpen.className = "btn-status";
-      btnClose.className = "btn-status active-close";
-    }
+  // Render Warna/State Tombol Status Berdasarkan Objek currentStatus
+  function renderStatusButtons() {
+    ['gmail', 'file', 'chat'].forEach(job => {
+      const openBtn = document.getElementById(`btn-${job}-OPEN`);
+      const closeBtn = document.getElementById(`btn-${job}-CLOSED`);
+      const val = currentStatus[job] || "OPEN";
+
+      if (val === "OPEN") {
+        openBtn.className = "btn-status active-open";
+        closeBtn.className = "btn-status";
+      } else {
+        openBtn.className = "btn-status";
+        closeBtn.className = "btn-status active-close";
+      }
+    });
   }
 
   // 3. Tambah Baris Form Rule Baru
@@ -118,7 +169,7 @@
     container.appendChild(div);
   }
 
-  // 4. Simpan Seluruh Perubahan ke JSONBin saat Tombol Simpan Diklik
+  // 4. Simpan Seluruh Perubahan ke JSONBin
   async function saveAllData() {
     const ruleItems = document.querySelectorAll(".rule-item");
     let updatedRules = [];
@@ -145,7 +196,7 @@
       });
 
       if (res.ok) {
-        alert("✅ Berhasil disimpan! Halaman user otomatis berubah.");
+        alert("✅ Berhasil disimpan! Status & Rules tiap job diperbarui.");
       } else {
         alert("❌ Gagal menyimpan.");
       }
@@ -154,7 +205,6 @@
     }
   }
 
-  // Jalankan saat admin.html dibuka
   loadAdminData();
 </script>
 
